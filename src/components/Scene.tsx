@@ -67,6 +67,28 @@ const BODY_TILT: Partial<Record<string, number>> = {
   pluto: 0.3,
 };
 
+const ORBIT_DAYS_PER_SECOND = 18;
+const BODY_LOOKUP = new Map<string, CelestialBody>(solarSystemData.map((body) => [body.id, body]));
+
+function getBodyPosition(data: CelestialBody, elapsedTime: number): THREE.Vector3 {
+  if (!data.orbit) {
+    return new THREE.Vector3(data.distance, 0, 0);
+  }
+
+  const parentPosition = data.orbit.parentId
+    ? getBodyPosition(BODY_LOOKUP.get(data.orbit.parentId) ?? { ...data, orbit: undefined }, elapsedTime)
+    : new THREE.Vector3(0, 0, 0);
+  const angle =
+    THREE.MathUtils.degToRad(data.orbit.initialAngle) +
+    (elapsedTime * ORBIT_DAYS_PER_SECOND * Math.PI * 2) / data.orbit.periodDays;
+
+  return parentPosition.add(new THREE.Vector3(
+    Math.cos(angle) * data.distance,
+    0,
+    Math.sin(angle) * data.distance,
+  ));
+}
+
 function createSeededRandom(seed: string) {
   let hash = 2166136261;
   for (let index = 0; index < seed.length; index += 1) {
@@ -719,6 +741,7 @@ function SaturnRingMaterial({ data }: { data: CelestialBody }) {
 function Planet({ data, isSelected }: { data: CelestialBody; isSelected: boolean }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
+  const orbitRef = useRef<THREE.Group>(null);
   const groupRef = useRef<THREE.Group>(null);
   const { selectBody } = useExhibitStore();
 
@@ -731,97 +754,99 @@ function Planet({ data, isSelected }: { data: CelestialBody; isSelected: boolean
       ringRef.current.rotation.z += delta * 0.03;
     }
 
-    if (groupRef.current) {
-      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5 + data.distance) * 0.5;
+    if (orbitRef.current) {
+      orbitRef.current.position.copy(getBodyPosition(data, state.clock.elapsedTime));
     }
   });
 
   return (
-    <group position={[data.distance, 0, 0]}>
-      {data.distance > 0 && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-data.distance, 0, 0]}>
+    <>
+      {data.orbit && !data.orbit.parentId && data.distance > 0 && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[data.distance - 0.15, data.distance + 0.15, 128]} />
           <meshBasicMaterial color="#9bb6ff" transparent opacity={0.08} side={THREE.DoubleSide} />
         </mesh>
       )}
 
-      <group
-        ref={groupRef}
-        rotation={[0, 0, BODY_TILT[data.id] ?? 0]}
-        onClick={(event) => {
-          event.stopPropagation();
-          playClickSound();
-          selectBody(data);
-        }}
-        onPointerOver={() => {
-          document.body.style.cursor = 'pointer';
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = 'auto';
-        }}
-      >
-        <mesh ref={meshRef}>
-          <sphereGeometry args={[data.size, 64, 64]} />
-          <PlanetMaterial data={data} />
-        </mesh>
-
-        {data.id === 'sun' && (
-          <>
-            <SunCorona size={data.size} />
-            <Sparkles
-              count={120}
-              scale={data.size * 4.2}
-              size={10}
-              speed={0.5}
-              opacity={0.9}
-              color="#ffb347"
-            />
-            <pointLight intensity={5.5} distance={650} decay={2} color="#ffb347" />
-          </>
-        )}
-
-        {data.id !== 'sun' && <AtmosphereShell data={data} />}
-        {data.id !== 'sun' && <CloudLayer data={data} />}
-
-        {data.ring && (
-          <mesh ref={ringRef} rotation={[-Math.PI / 2 + 0.32, 0, 0]}>
-            <ringGeometry args={[data.ring.innerRadius, data.ring.outerRadius, 96]} />
-            <SaturnRingMaterial data={data} />
+      <group ref={orbitRef}>
+        <group
+          ref={groupRef}
+          rotation={[0, 0, BODY_TILT[data.id] ?? 0]}
+          onClick={(event) => {
+            event.stopPropagation();
+            playClickSound();
+            selectBody(data);
+          }}
+          onPointerOver={() => {
+            document.body.style.cursor = 'pointer';
+          }}
+          onPointerOut={() => {
+            document.body.style.cursor = 'auto';
+          }}
+        >
+          <mesh ref={meshRef}>
+            <sphereGeometry args={[data.size, 64, 64]} />
+            <PlanetMaterial data={data} />
           </mesh>
-        )}
 
-        {isSelected && (
-          <mesh scale={1.1}>
-            <sphereGeometry args={[data.size, 32, 32]} />
-            <meshBasicMaterial color="#ffffff" transparent opacity={0.18} wireframe />
-          </mesh>
-        )}
+          {data.id === 'sun' && (
+            <>
+              <SunCorona size={data.size} />
+              <Sparkles
+                count={120}
+                scale={data.size * 4.2}
+                size={10}
+                speed={0.5}
+                opacity={0.9}
+                color="#ffb347"
+              />
+              <pointLight intensity={5.5} distance={650} decay={2} color="#ffb347" />
+            </>
+          )}
 
-        {!isSelected && (
-          <Html position={[0, -data.size - 2, 0]} center zIndexRange={[100, 0]}>
-            <div className="flex flex-col items-center gap-2">
-              <button
-                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/30 hover:scale-110 transition-all cursor-pointer animate-pulse shadow-[0_0_15px_rgba(255,255,255,0.2)]"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  playClickSound();
-                  selectBody(data);
-                }}
-                onPointerDown={(event) => event.stopPropagation()}
-              >
-                <Hand size={18} />
-              </button>
-              <div
-                className="text-white/90 text-xs uppercase tracking-widest font-mono whitespace-nowrap pointer-events-none"
-                style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
-              >
-                {data.name}
+          {data.id !== 'sun' && <AtmosphereShell data={data} />}
+          {data.id !== 'sun' && <CloudLayer data={data} />}
+
+          {data.ring && (
+            <mesh ref={ringRef} rotation={[-Math.PI / 2 + 0.32, 0, 0]}>
+              <ringGeometry args={[data.ring.innerRadius, data.ring.outerRadius, 96]} />
+              <SaturnRingMaterial data={data} />
+            </mesh>
+          )}
+
+          {isSelected && (
+            <mesh scale={1.1}>
+              <sphereGeometry args={[data.size, 32, 32]} />
+              <meshBasicMaterial color="#ffffff" transparent opacity={0.18} wireframe />
+            </mesh>
+          )}
+
+          {!isSelected && (
+            <Html position={[0, -data.size - 2, 0]} center zIndexRange={[100, 0]}>
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/30 hover:scale-110 transition-all cursor-pointer animate-pulse shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    playClickSound();
+                    selectBody(data);
+                  }}
+                  onPointerDown={(event) => event.stopPropagation()}
+                >
+                  <Hand size={18} />
+                </button>
+                <div
+                  className="text-white/90 text-xs uppercase tracking-widest font-mono whitespace-nowrap pointer-events-none"
+                  style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
+                >
+                  {data.name}
+                </div>
               </div>
-            </div>
-          </Html>
-        )}
+            </Html>
+          )}
+        </group>
       </group>
-    </group>
+    </>
   );
 }
 
@@ -836,22 +861,38 @@ function CameraController() {
 
   useEffect(() => {
     if (selectedBody) {
-      const bodyPos = new THREE.Vector3(selectedBody.distance, 0, 0);
-      const offset = Math.max(selectedBody.size * 3, 20);
-      targetPosition.current.set(bodyPos.x + offset, bodyPos.y + offset * 0.5, bodyPos.z + offset);
-      targetLookAt.current.copy(bodyPos);
-      setIsAnimating(true);
       playZoomSound();
     } else if (!isIdle) {
-      targetPosition.current.set(150, 120, 400);
-      targetLookAt.current.set(150, 0, 0);
+      targetPosition.current.set(260, 150, 420);
+      targetLookAt.current.set(0, 0, 0);
       setIsAnimating(true);
       playZoomSound();
     }
   }, [selectedBody, isIdle]);
 
   useFrame((state, delta) => {
-    if (isAnimating) {
+    if (selectedBody) {
+      const bodyPos = getBodyPosition(selectedBody, state.clock.elapsedTime);
+      const offset = Math.max(selectedBody.size * 3.25, 20);
+      const radialOffset = bodyPos.clone().setY(0);
+
+      if (radialOffset.lengthSq() < 1) {
+        radialOffset.set(1, 0, 0);
+      } else {
+        radialOffset.normalize();
+      }
+
+      targetPosition.current
+        .copy(bodyPos)
+        .add(radialOffset.multiplyScalar(offset))
+        .add(new THREE.Vector3(0, offset * 0.45, offset * 0.8));
+      targetLookAt.current.copy(bodyPos);
+      camera.position.lerp(targetPosition.current, delta * 2.4);
+      if (controlsRef.current) {
+        controlsRef.current.target.lerp(targetLookAt.current, delta * 3);
+        controlsRef.current.update();
+      }
+    } else if (isAnimating) {
       camera.position.lerp(targetPosition.current, delta * 3);
       if (controlsRef.current) {
         controlsRef.current.target.lerp(targetLookAt.current, delta * 3);
@@ -862,8 +903,8 @@ function CameraController() {
       }
     } else if (isIdle && !selectedBody) {
       const time = state.clock.getElapsedTime();
-      targetPosition.current.set(Math.sin(time * 0.05) * 150 + 100, 60, Math.cos(time * 0.05) * 150 + 200);
-      targetLookAt.current.set(100, 0, 0);
+      targetPosition.current.set(Math.sin(time * 0.04) * 220, 110, Math.cos(time * 0.04) * 220 + 320);
+      targetLookAt.current.set(0, 0, 0);
       camera.position.lerp(targetPosition.current, delta * 2);
       if (controlsRef.current) {
         controlsRef.current.target.lerp(targetLookAt.current, delta * 2);
@@ -890,7 +931,7 @@ export default function Scene() {
 
   return (
     <div className="absolute inset-0 z-0">
-      <Canvas camera={{ position: [150, 120, 400], fov: 45 }}>
+      <Canvas camera={{ position: [260, 150, 420], fov: 45 }}>
         <color attach="background" args={['#020205']} />
 
         <ambientLight intensity={0.12} />

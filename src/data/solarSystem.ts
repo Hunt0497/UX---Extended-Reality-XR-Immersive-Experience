@@ -10,6 +10,11 @@ export interface CelestialBody {
   coolFact: string;
   earthComparison: string;
   textureUrl?: string;
+  orbit?: {
+    parentId?: string;
+    periodDays: number;
+    initialAngle: number;
+  };
   ring?: {
     innerRadius: number;
     outerRadius: number;
@@ -45,6 +50,10 @@ export const solarSystemData: CelestialBody[] = [
     color: '#8c8c94',
     size: 2,
     distance: 40,
+    orbit: {
+      periodDays: 87.97,
+      initialAngle: 15,
+    },
     textureUrl: 'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/mercurymap.jpg',
     facts: [
       'Day: 59 Earth days',
@@ -63,6 +72,10 @@ export const solarSystemData: CelestialBody[] = [
     color: '#e3bb76',
     size: 3.5,
     distance: 60,
+    orbit: {
+      periodDays: 224.7,
+      initialAngle: 90,
+    },
     textureUrl: 'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/venusmap.jpg',
     facts: [
       'Day: 243 Earth days',
@@ -81,6 +94,10 @@ export const solarSystemData: CelestialBody[] = [
     color: '#2b82c9',
     size: 4,
     distance: 85,
+    orbit: {
+      periodDays: 365.25,
+      initialAngle: 165,
+    },
     textureUrl: 'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/earthmap1k.jpg',
     facts: [
       'Day: 24 hours',
@@ -98,7 +115,12 @@ export const solarSystemData: CelestialBody[] = [
     shortDescription: 'Earth’s only natural satellite, a cratered and silent world.',
     color: '#d1d5db',
     size: 1.5,
-    distance: 95,
+    distance: 12,
+    orbit: {
+      parentId: 'earth',
+      periodDays: 27.3,
+      initialAngle: 35,
+    },
     textureUrl: 'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/moonmap1k.jpg',
     facts: [
       'Day: 27.3 Earth days',
@@ -117,6 +139,10 @@ export const solarSystemData: CelestialBody[] = [
     color: '#c1440e',
     size: 2.5,
     distance: 115,
+    orbit: {
+      periodDays: 687,
+      initialAngle: 230,
+    },
     textureUrl: 'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/marsmap1k.jpg',
     facts: [
       'Day: 24.6 hours',
@@ -135,6 +161,10 @@ export const solarSystemData: CelestialBody[] = [
     color: '#d39c7e',
     size: 12,
     distance: 160,
+    orbit: {
+      periodDays: 4332.59,
+      initialAngle: 300,
+    },
     textureUrl: 'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/jupitermap.jpg',
     facts: [
       'Day: 10 hours',
@@ -153,6 +183,10 @@ export const solarSystemData: CelestialBody[] = [
     color: '#ead6b8',
     size: 10,
     distance: 210,
+    orbit: {
+      periodDays: 10759.22,
+      initialAngle: 20,
+    },
     textureUrl: 'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/saturnmap.jpg',
     ring: {
       innerRadius: 12,
@@ -177,6 +211,10 @@ export const solarSystemData: CelestialBody[] = [
     color: '#4b70dd',
     size: 6,
     distance: 260,
+    orbit: {
+      periodDays: 30688.5,
+      initialAngle: 120,
+    },
     textureUrl: 'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/uranusmap.jpg',
     facts: [
       'Day: 17 hours',
@@ -195,6 +233,10 @@ export const solarSystemData: CelestialBody[] = [
     color: '#274687',
     size: 5.5,
     distance: 300,
+    orbit: {
+      periodDays: 60182,
+      initialAngle: 210,
+    },
     textureUrl: 'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/neptunemap.jpg',
     facts: [
       'Day: 16 hours',
@@ -213,6 +255,10 @@ export const solarSystemData: CelestialBody[] = [
     color: '#ddc4b4',
     size: 1.5,
     distance: 330,
+    orbit: {
+      periodDays: 90560,
+      initialAngle: 275,
+    },
     textureUrl: 'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/plutomap1k.jpg',
     facts: [
       'Day: 153 hours',
