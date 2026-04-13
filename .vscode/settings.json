@@ -1,0 +1,7 @@
+{
+  "liveServer.settings.root": "/dist",
+  "liveServer.settings.ignoreFiles": [
+    "**/src/**",
+    "**/node_modules/**"
+  ]
+}
