@@ -8,7 +8,7 @@ export default function UIOverlay() {
   const { selectedBody, selectBody, isIdle } = useExhibitStore();
 
   return (
-    <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-8">
+    <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-4 md:p-8">
       {/* Top Bar */}
       <div className="flex justify-between items-start w-full pointer-events-auto">
         <motion.button
@@ -69,9 +69,9 @@ export default function UIOverlay() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ type: "spring", bounce: 0, duration: 0.8 }}
-              className="w-1/3 h-full flex items-center justify-start pl-16 pointer-events-auto"
+              className="w-1/3 h-full flex items-start justify-start pl-4 pr-3 pt-20 pb-6 md:pl-10 md:pr-4 md:pt-24 md:pb-10 pointer-events-auto overflow-hidden"
             >
-              <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-10 rounded-3xl max-w-md text-white shadow-2xl">
+              <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-6 md:p-8 rounded-3xl max-w-md w-full max-h-full overflow-y-auto text-white shadow-2xl">
                 <h2 className="text-5xl font-bold mb-2 tracking-tight">{selectedBody.name}</h2>
                 <div className="text-blue-400 uppercase tracking-widest text-sm font-semibold mb-6">
                   {selectedBody.type}
@@ -94,7 +94,7 @@ export default function UIOverlay() {
             </motion.div>
 
             {/* Center Wall (Empty for visual focus) */}
-            <div className="w-1/3 h-full flex items-end justify-center pb-16">
+            <div className="w-1/3 h-full flex items-end justify-center pb-8 md:pb-16 px-3">
                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -118,9 +118,9 @@ export default function UIOverlay() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 50 }}
               transition={{ type: "spring", bounce: 0, duration: 0.8, delay: 0.1 }}
-              className="w-1/3 h-full flex items-center justify-end pr-16 pointer-events-auto"
+              className="w-1/3 h-full flex items-start justify-end pl-3 pr-4 pt-20 pb-6 md:pl-4 md:pr-10 md:pt-24 md:pb-10 pointer-events-auto overflow-hidden"
             >
-              <div className="flex flex-col gap-6 max-w-md">
+              <div className="flex flex-col gap-6 max-w-md w-full max-h-full overflow-y-auto">
                 <div className="bg-gradient-to-br from-blue-900/40 to-black/40 backdrop-blur-xl border border-blue-500/20 p-8 rounded-3xl text-white shadow-2xl">
                   <div className="flex items-center gap-3 text-blue-400 uppercase tracking-wider text-xs font-bold mb-4">
                     <Globe size={16} /> Earth Comparison

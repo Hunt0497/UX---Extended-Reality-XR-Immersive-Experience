@@ -38,19 +38,13 @@ export default function Exhibit() {
   }, []);
 
   return (
-    <div className="w-full h-screen bg-black flex items-center justify-center overflow-hidden font-sans">
-      {/* 
-        This container forces a very wide aspect ratio (e.g., 48:9) to simulate 3 walls.
-        It uses max-w-full and max-h-full to fit within any screen while maintaining the ratio.
-      */}
-      <div 
-        className="relative w-full max-w-full bg-gray-900 shadow-2xl overflow-hidden"
-        style={{ aspectRatio: '48/9', maxHeight: '100vh' }}
+    <div className="w-full min-h-screen bg-black flex items-center justify-center overflow-hidden font-sans p-4 md:p-6">
+      <div
+        className="relative w-full h-[92vh] min-h-[680px] max-h-[960px] bg-gray-900 shadow-2xl overflow-hidden rounded-[28px]"
       >
         <Scene />
         <UIOverlay />
         
-        {/* Debug/Visual Wall Separators (Optional, can be hidden in production) */}
         <div className="absolute inset-0 pointer-events-none flex opacity-10">
           <div className="w-1/3 h-full border-r border-white/20"></div>
           <div className="w-1/3 h-full border-r border-white/20"></div>
